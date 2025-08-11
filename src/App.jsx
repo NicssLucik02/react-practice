@@ -1,19 +1,34 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React from 'react';
+import React, { useState } from 'react';
 import './App.scss';
 
-// import usersFromServer from './api/users';
-// import categoriesFromServer from './api/categories';
-// import productsFromServer from './api/products';
+import usersFromServer from './api/users';
+import categoriesFromServer from './api/categories';
+import productsFromServer from './api/products';
 
-// const products = productsFromServer.map((product) => {
-//   const category = null; // find by product.categoryId
-//   const user = null; // find by category.ownerId
+ const products = productsFromServer.map((product) => {
+ const category = categoriesFromServer.find(category => category.id === product.categoryId) || null;
+ const user = usersFromServer.find(user => user.id === category.ownerId) || null;
 
-//   return null;
-// });
+  return {
+    ...product,
+    category,
+    user
+  }
+});
 
-export const App = () => (
+
+export const App = () => {
+  const[filteredName, setFilteredName] = useState('All');
+
+  console.log(filteredName);
+
+  const filterProduct = () => {
+    if (filteredName === '')
+    products.filter
+  }
+
+  return (
   <div className="section">
     <div className="container">
       <h1 className="title">Product Categories</h1>
@@ -25,32 +40,25 @@ export const App = () => (
           <p className="panel-tabs has-text-weight-bold">
             <a
               data-cy="FilterAllUsers"
-              href="#/"
+              href="#/All"
+              onClick={() => setFilteredName('All')}
             >
               All
             </a>
 
-            <a
+            {usersFromServer.map(user => {
+              return(
+              <a
+              key={user.id}
               data-cy="FilterUser"
-              href="#/"
+              href={`#/${user.name}`}
+              onClick={() => setFilteredName(user.name)}
             >
-              User 1
+              {user.name}
             </a>
+            )})
+            }
 
-            <a
-              data-cy="FilterUser"
-              href="#/"
-              className="is-active"
-            >
-              User 2
-            </a>
-
-            <a
-              data-cy="FilterUser"
-              href="#/"
-            >
-              User 3
-            </a>
           </p>
 
           <div className="panel-block">
@@ -79,7 +87,8 @@ export const App = () => (
           </div>
 
           <div className="panel-block is-flex-wrap-wrap">
-            <a
+
+             <a
               href="#/"
               data-cy="AllCategories"
               className="button is-success mr-6 is-outlined"
@@ -87,36 +96,27 @@ export const App = () => (
               All
             </a>
 
-            <a
+            {categoriesFromServer.map(category => {
+              return (
+                 <a
               data-cy="Category"
               className="button mr-2 my-1 is-info"
-              href="#/"
+              href={`#/${category.title}`}
             >
-              Category 1
+              {category.title}
             </a>
+              )
+            })
+            }
 
-            <a
+            {/* <a
               data-cy="Category"
               className="button mr-2 my-1"
               href="#/"
             >
               Category 2
-            </a>
+            </a> */}
 
-            <a
-              data-cy="Category"
-              className="button mr-2 my-1 is-info"
-              href="#/"
-            >
-              Category 3
-            </a>
-            <a
-              data-cy="Category"
-              className="button mr-2 my-1"
-              href="#/"
-            >
-              Category 4
-            </a>
           </div>
 
           <div className="panel-block">
@@ -135,7 +135,7 @@ export const App = () => (
         <p data-cy="NoMatchingMessage">
           No products matching selected criteria
         </p>
-
+{/* ! */}
         <table
           data-cy="ProductTable"
           className="table is-striped is-narrow is-fullwidth"
@@ -193,23 +193,27 @@ export const App = () => (
           </thead>
 
           <tbody>
-            <tr data-cy="Product">
+            {products.map(product => {
+              return (
+                <tr data-cy="Product">
               <td className="has-text-weight-bold" data-cy="ProductId">
-                1
+                {product.id}
               </td>
-
-              <td data-cy="ProductName">Milk</td>
-              <td data-cy="ProductCategory">🍺 - Drinks</td>
+              <td data-cy="ProductName">{product.name}</td>
+              <td data-cy="ProductCategory">{product.category.icon} - {product.category.title}</td>
 
               <td
                 data-cy="ProductUser"
                 className="has-text-link"
               >
-                Max
+              {product.user.name}
               </td>
             </tr>
+            )
+            })}
 
-            <tr data-cy="Product">
+
+            {/* <tr data-cy="Product">
               <td className="has-text-weight-bold" data-cy="ProductId">
                 2
               </td>
@@ -239,10 +243,11 @@ export const App = () => (
               >
                 Roma
               </td>
-            </tr>
+            </tr> */}
           </tbody>
         </table>
       </div>
     </div>
   </div>
-);
+  )
+};
