@@ -24,18 +24,19 @@ const products = productsFromServer.map(product => {
 export const App = () => {
   const [filteredName, setFilteredName] = useState('All');
   const [searchProduct, setSearchProduct] = useState('');
-  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterCategory, setFilterCategory] = useState([]);
   const [sortStatus, setSortStatus] = useState('');
   const [sortDirection, setSortDirection] = useState({id: 'asc', product: 'asc', category: 'asc', user: 'asc',});
 
   const resetAllFilters = () => {
     setFilteredName('All');
     setSearchProduct('');
-    setFilterCategory('All');
+    setFilterCategory([]);
   }
 
   const sortedProducts = () => {
     let sorted =  [...products];
+
 
     if (sortStatus === 'id') {
       sortDirection.id === 'asc'
@@ -62,17 +63,17 @@ export const App = () => {
     return sorted;
   }
 
-  const filterProducts = () => {
-    sorted = sortedProducts();
+  const filterAndSortProducts = () => {
+    const sorted = sortedProducts();
 
     const filteredByName =
       filteredName === 'All'
-        ? products
-        : products.filter(product => product.users.name === filteredName);
+        ? sorted
+        : sorted.filter(product => product.users.name === filteredName);
 
-    const filteredByCategory = filterCategory === 'All'
+    const filteredByCategory = filterCategory.length === 0
         ? filteredByName
-        : filteredByName.filter(product => product.category.title === filterCategory);
+        : filteredByName.filter(product => filterCategory.includes(product.category.title));
 
     const searched =
       searchProduct.toLowerCase().trim() === ''
@@ -87,6 +88,50 @@ export const App = () => {
   const handleSearch = event => {
     setSearchProduct(event.target.value);
   };
+
+  const handleSortId = () => {
+    setSortStatus('id')
+    setSortDirection((prev => ({
+      ...prev,
+       id: prev.id === 'asc' ? 'desc' : 'asc'
+    })))
+  }
+
+    const handleSortProduct = () =>{
+    setSortStatus('product')
+    setSortDirection((prev => ({
+      ...prev,
+       product: prev.product === 'asc' ? 'desc' : 'asc'
+    })))
+  }
+
+  const handleSortCategory = () => {
+    setSortStatus('category')
+    setSortDirection((prev => ({
+      ...prev,
+       category: prev.category === 'asc' ? 'desc' : 'asc'
+    })))
+  }
+
+  const handleSortUser = () => {
+    setSortStatus('user')
+    setSortDirection((prev => ({
+      ...prev,
+       user: prev.user === 'asc' ? 'desc' : 'asc'
+    })))
+  }
+
+  const handleFilterCategory = (event) => {
+  event.preventDefault();
+  const categoryTitle = event.currentTarget.textContent;
+
+  setFilterCategory(prev =>
+    prev.includes(categoryTitle)
+      ? prev.filter(title => title !== categoryTitle)
+      : [...prev, categoryTitle]
+  );
+};
+
 
 console.log(filterCategory)
 
@@ -140,12 +185,16 @@ console.log(filterCategory)
                 </span>
 
                 <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
+                  {searchProduct !== ''
+                  ? <button
                     data-cy="ClearButton"
                     type="button"
                     className="delete"
+                    onClick={() => setSearchProduct('')}
                   />
+                  : ''
+                  }
+
                 </span>
               </p>
             </div>
@@ -154,11 +203,14 @@ console.log(filterCategory)
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className={filterCategory === 'All'
+                className={filterCategory.length === 0
                       ? "button mr-2 my-1 is-info"
                       : "button mr-2 my-1"
                     }
-                onClick={() => setFilterCategory('All')}
+                 onClick={(e) => {
+                e.preventDefault();
+                setFilterCategory([]);
+                }}
               >
                 All
               </a>
@@ -166,13 +218,14 @@ console.log(filterCategory)
               {categoriesFromServer.map(category => {
                 return (
                   <a
+                    key = {category.id}
                     data-cy="Category"
-                    className={filterCategory === category.title
+                    className={filterCategory.includes(category.title)
                       ? "button mr-2 my-1 is-info"
                       : "button mr-2 my-1"
                     }
                     href={`#/${category.title}`}
-                    onClick={() => setFilterCategory(category.title)}
+                    onClick={handleFilterCategory}
 
                   >
                     {category.title}
@@ -180,13 +233,6 @@ console.log(filterCategory)
                 );
               })}
 
-              {/* <a
-              data-cy="Category"
-              className="button mr-2 my-1"
-              href="#/"
-            >
-              Category 2
-            </a> */}
             </div>
 
             <div className="panel-block">
@@ -204,18 +250,17 @@ console.log(filterCategory)
 
         <div className="box table-container">
           <p data-cy="NoMatchingMessage">
-            {filterProducts.length < 0 ? 'No products matching selected criteria' : '' }
+            {filterAndSortProducts.length < 0 ? 'No products matching selected criteria' : '' }
           </p>
-          {/* ! */}
+
           <table
             data-cy="ProductTable"
             className="table is-striped is-narrow is-fullwidth"
           >
             <thead>
               <tr>
-                <th
-                 onClick={}>
-                  <span className="is-flex is-flex-wrap-nowrap">
+                <th>
+                  <span className="is-flex is-flex-wrap-nowrap" onClick={handleSortId}>
                     ID
                     <a href="#/">
                       <span className="icon">
@@ -226,7 +271,7 @@ console.log(filterCategory)
                 </th>
 
                 <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
+                  <span className="is-flex is-flex-wrap-nowrap" onClick={handleSortProduct}>
                     Product
                     <a href="#/">
                       <span className="icon">
@@ -237,7 +282,7 @@ console.log(filterCategory)
                 </th>
 
                 <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
+                  <span className="is-flex is-flex-wrap-nowrap" onClick={handleSortCategory}>
                     Category
                     <a href="#/">
                       <span className="icon">
@@ -248,7 +293,7 @@ console.log(filterCategory)
                 </th>
 
                 <th>
-                  <span className="is-flex is-flex-wrap-nowrap">
+                  <span className="is-flex is-flex-wrap-nowrap" onClick={handleSortUser}>
                     User
                     <a href="#/">
                       <span className="icon">
@@ -261,9 +306,9 @@ console.log(filterCategory)
             </thead>
 
             <tbody>
-              {filterProducts().map(product => {
+              {filterAndSortProducts().map(product => {
                 return (
-                  <tr data-cy="Product">
+                  <tr data-cy="Product" key={product.id}>
                     <td className="has-text-weight-bold" data-cy="ProductId">
                       {product.id}
                     </td>
@@ -272,44 +317,13 @@ console.log(filterCategory)
                       {product.category.icon} - {product.category.title}
                     </td>
 
-                    <td data-cy="ProductUser" className="has-text-link">
+                    <td data-cy="ProductUser" className={product.users.sex === 'm' ? 'has-text-link' : 'has-text-danger'}>
                       {product.users.name}
                     </td>
                   </tr>
                 );
               })}
 
-              {/* <tr data-cy="Product">
-              <td className="has-text-weight-bold" data-cy="ProductId">
-                2
-              </td>
-
-              <td data-cy="ProductName">Bread</td>
-              <td data-cy="ProductCategory">🍞 - Grocery</td>
-
-              <td
-                data-cy="ProductUser"
-                className="has-text-danger"
-              >
-                Anna
-              </td>
-            </tr>
-
-            <tr data-cy="Product">
-              <td className="has-text-weight-bold" data-cy="ProductId">
-                3
-              </td>
-
-              <td data-cy="ProductName">iPhone</td>
-              <td data-cy="ProductCategory">💻 - Electronics</td>
-
-              <td
-                data-cy="ProductUser"
-                className="has-text-link"
-              >
-                Roma
-              </td>
-            </tr> */}
             </tbody>
           </table>
         </div>
