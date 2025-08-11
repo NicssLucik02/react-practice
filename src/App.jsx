@@ -24,13 +24,47 @@ const products = productsFromServer.map(product => {
 export const App = () => {
   const [filteredName, setFilteredName] = useState('All');
   const [searchProduct, setSearchProduct] = useState('');
-  const [filterCategory, setFilterCategory] = useState('All')
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [sortStatus, setSortStatus] = useState('');
+  const [sortDirection, setSortDirection] = useState({id: 'asc', product: 'asc', category: 'asc', user: 'asc',});
 
-  const resetFilters = () => {
+  const resetAllFilters = () => {
+    setFilteredName('All');
+    setSearchProduct('');
+    setFilterCategory('All');
+  }
 
+  const sortedProducts = () => {
+    let sorted =  [...products];
+
+    if (sortStatus === 'id') {
+      sortDirection.id === 'asc'
+        ? sorted.sort((a, b) => a.id - b.id)
+        : sorted.sort((a, b) => b.id - a.id);
+
+    } else if (sortStatus === 'product') {
+      sortDirection.product === 'asc'
+        ? sorted.sort((a, b) => a.name.localeCompare(b.name))
+        : sorted.sort((a, b) => b.name.localeCompare(a.name))
+
+    } else if (sortStatus === 'category') {
+      sortDirection.category === 'asc'
+        ? sorted.sort((a, b) => a.category.title.localeCompare(b.category.title))
+        : sorted.sort((a, b) => b.category.title.localeCompare(a.category.title))
+
+    } else if (sortStatus === 'user') {
+      sortDirection.user === 'asc'
+        ? sorted.sort((a, b) => a.users.name.localeCompare(b.users.name))
+        : sorted.sort((a, b) => b.users.name.localeCompare(a.users.name))
+
+    }
+
+    return sorted;
   }
 
   const filterProducts = () => {
+    sorted = sortedProducts();
+
     const filteredByName =
       filteredName === 'All'
         ? products
@@ -160,6 +194,7 @@ console.log(filterCategory)
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={resetAllFilters}
               >
                 Reset all filters
               </a>
@@ -169,7 +204,7 @@ console.log(filterCategory)
 
         <div className="box table-container">
           <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
+            {filterProducts.length < 0 ? 'No products matching selected criteria' : '' }
           </p>
           {/* ! */}
           <table
@@ -178,7 +213,8 @@ console.log(filterCategory)
           >
             <thead>
               <tr>
-                <th>
+                <th
+                 onClick={}>
                   <span className="is-flex is-flex-wrap-nowrap">
                     ID
                     <a href="#/">
